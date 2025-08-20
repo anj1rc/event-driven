@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Card Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .input-section {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="color"],
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    textarea {
+      height: 80px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .preview {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #ecf0f1;
+      border-radius: 4px;
+    }
+
+    .card {
+      border: 3px solid #3498db;
+      border-radius: 10px;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto;
+      text-align: left;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .card p {
+      margin: 10px 0;
+      color: #555;
+    }
+
+    .like-btn {
+      background-color: #ecf0f1;
+      border: 1px solid #bdc3c7;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .like-btn:hover {
+      background-color: #bdc3c7;
+    }
+
+    .likes-count {
+      margin-top: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Input Section -->
+    <div class="input-section">
+      <h1>Profile Card Generator</h1>
+      <h2>Enter Your Information</h2>
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" placeholder="Your full name" />
+
+      <label for="yearLevel">Year Level:</label>
+      <input type="text" id="yearLevel" placeholder="e.g., Grade 10" />
+
+      <label for="section">Section:</label>
+      <input type="text" id="section" placeholder="e.g., A" />
+
+      <label for="bio">Bio:</label>
+      <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
+
+      <label for="color">Favorite Color:</label>
+      <input type="color" id="color" value="#3498db" />
+
+      <button onclick="generateCard()">Generate Profile Card</button>
+
+      <h2>Real-Time Preview</h2>
+      <div class="preview">
+        <p><strong>Name:</strong> <span id="preview-name">-</span></p>
+        <p><strong>Year & Section:</strong> <span id="preview-year">-</span></p>
+      </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-section">
+      <h2>Your Profile Card</h2>
+      <div id="profile-card" class="card" style="display: none;">
+        <h2 id="card-name"></h2>
+  <p><strong>Year & Section:</strong> <span id="card-year-level"></span></p>
+  <p><strong>Bio:</strong> <span id="card-bio"></span></p>
+        <button class="like-btn" onclick="likeCard()">
+          ❤️ Likes
+        </button>
+        <p class="likes-count" id="likes-count">0 likes</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get DOM elements
+    const nameInput = document.getElementById('name');
+    const yearLevelInput = document.getElementById('yearLevel');
+    const sectionInput = document.getElementById('section');
+    const bioInput = document.getElementById('bio');
+    const colorInput = document.getElementById('color');
+    const profileCard = document.getElementById('profile-card');
+    const cardName = document.getElementById('card-name');
+    const cardYearLevel = document.getElementById('card-year-level');
+    const cardBio = document.getElementById('card-bio');
+    const previewName = document.getElementById('preview-name');
+  const previewYear = document.getElementById('preview-year');
+    const likesCount = document.getElementById('likes-count');
+
+    let liked = false;
+
+    // Real-time preview update
+    function updatePreview() {
+      previewName.textContent = nameInput.value || '-';
+      const year = yearLevelInput.value.trim();
+      const section = sectionInput.value.trim();
+      if (year && section) {
+        previewYear.textContent = year + ' - ' + section;
+      } else if (year) {
+        previewYear.textContent = year;
+      } else if (section) {
+        previewYear.textContent = section;
+      } else {
+        previewYear.textContent = '-';
+      }
+    }
+
+    nameInput.addEventListener('input', updatePreview);
+    yearLevelInput.addEventListener('input', updatePreview);
+    sectionInput.addEventListener('input', updatePreview);
+
+    // Generate card function
+    function generateCard() {
+      const name = nameInput.value.trim();
+      const yearLevel = yearLevelInput.value.trim();
+      const section = sectionInput.value.trim();
+      const bio = bioInput.value.trim();
+
+      if (!name) {
+        alert("Please enter your name.");
+        return;
+      }
+
+      // Update card content
+      cardName.textContent = name;
+      let yearSection = '';
+      if (yearLevel && section) {
+        yearSection = yearLevel + ' - ' + section;
+      } else if (yearLevel) {
+        yearSection = yearLevel;
+      } else if (section) {
+        yearSection = section;
+      }
+      cardYearLevel.textContent = yearSection;
+      cardBio.textContent = bio || '';
+
+      // Set border color
+      profileCard.style.borderColor = colorInput.value;
+      profileCard.style.display = 'block';
+
+      // Reset like state
+      liked = false;
+      likesCount.textContent = '0 like';
+    }
+
+    // Like functionality (toggle)
+    function likeCard() {
+      liked = !liked;
+      likesCount.textContent = liked ? '1 like' : '0 like';
+    }
+  </script>
+
+</body>
+</html>
