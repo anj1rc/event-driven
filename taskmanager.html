@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Task Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f0f0f0;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    .controls input[type="text"] {
+      flex: 2 1 200px;
+      min-width: 120px;
+      max-width: 300px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    .controls select {
+      flex: 1 1 100px;
+      min-width: 80px;
+      max-width: 120px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    .controls button {
+      flex: 0 0 70px;
+      min-width: 60px;
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background: #ddd;
+    }
+    .board {
+      display: flex;
+      gap: 10px;
+    }
+    .column {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .list {
+      min-height: 120px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .list.drop-hover {
+      background: #eef;
+      border-color: #88f;
+    }
+    .task {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-left: 5px solid #999;
+      padding: 6px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      cursor: grab;
+    }
+    .low { border-left-color: green; }
+    .medium { border-left-color: orange; }
+    .high { border-left-color: red; }
+    @media (max-width: 700px) {
+      .board {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Interactive Task Manager</h1>
+
+    <div class="controls">
+      <input id="taskInput" type="text" placeholder="New task...">
+      <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+      <button id="addBtn">Add</button>
+      <input id="searchInput" type="text" placeholder="Search tasks...">
+      <button id="clearBtn">Clear</button>
+    </div>
+
+    <div class="board">
+      <section class="column">
+        <h2>To Do</h2>
+        <div class="list dropzone" id="todo"></div>
+      </section>
+      <section class="column">
+        <h2>In Progress</h2>
+        <div class="list dropzone" id="progress"></div>
+      </section>
+      <section class="column">
+        <h2>Done</h2>
+        <div class="list dropzone" id="done"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    var draggedTask = null;
+
+    function createTask(text, priority) {
+      var task = document.createElement("div");
+      task.className = "task " + priority;
+      task.textContent = text;
+      task.draggable = true;
+
+      task.addEventListener("dragstart", function() {
+        draggedTask = task;
+        task.style.opacity = "0.5";
+      });
+
+      task.addEventListener("dragend", function() {
+        draggedTask = null;
+        task.style.opacity = "1";
+      });
+
+      return task;
+    }
+
+    function setupDropZone(zone) {
+      zone.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        zone.classList.add("drop-hover");
+      });
+
+      zone.addEventListener("dragleave", function() {
+        zone.classList.remove("drop-hover");
+      });
+
+      zone.addEventListener("drop", function(event) {
+        event.preventDefault();
+        zone.classList.remove("drop-hover");
+        if (draggedTask != null) {
+          zone.appendChild(draggedTask);
+        }
+      });
+    }
+
+    var zones = document.getElementsByClassName("dropzone");
+    for (var i = 0; i < zones.length; i++) {
+      setupDropZone(zones[i]);
+    }
+
+    var addBtn = document.getElementById("addBtn");
+    var taskInput = document.getElementById("taskInput");
+    var prioritySelect = document.getElementById("priority");
+
+    addBtn.onclick = function() {
+      var text = taskInput.value.trim();
+      if (text === "") {
+        return;
+      }
+      var task = createTask(text, prioritySelect.value);
+      document.getElementById("todo").appendChild(task);
+      taskInput.value = "";
+      taskInput.focus();
+    };
+
+    taskInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        addBtn.click();
+      }
+    });
+
+    var searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", function() {
+      var term = searchInput.value.toLowerCase();
+      var tasks = document.getElementsByClassName("task");
+      for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+        if (task.textContent.toLowerCase().indexOf(term) > -1) {
+          task.style.display = "";
+        } else {
+          task.style.display = "none";
+        }
+      }
+    });
+
+    var clearBtn = document.getElementById("clearBtn");
+    clearBtn.onclick = function() {
+      searchInput.value = "";
+      var event = new Event("input");
+      searchInput.dispatchEvent(event);
+    };
+  </script>
+</body>
+</html>
